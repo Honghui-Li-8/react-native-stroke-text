@@ -35,6 +35,8 @@ class StrokeTextView extends View {
     private boolean layoutDirty = true;
     private float customWidth = 0;
     private final Map<String, Typeface> fontCache = new HashMap<>();
+    private int lastReportedWidth = -1;
+    private int lastReportedHeight = -1;
 
     public StrokeTextView(ThemedReactContext context) {
         super(context);
@@ -98,30 +100,48 @@ class StrokeTextView extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         ensureLayout();
-        strokeLayout.draw(canvas);
-        textLayout.draw(canvas);
-        updateSize(textLayout.getWidth(), textLayout.getHeight());
+        if (textLayout != null && strokeLayout != null) {
+            strokeLayout.draw(canvas);
+            textLayout.draw(canvas);
+            
+            // Only update size for old architecture, and only when size changes
+            if (!checkNewArchitecture()) {
+                int width = textLayout.getWidth();
+                int height = textLayout.getHeight();
+                if (width != lastReportedWidth || height != lastReportedHeight) {
+                    updateSize(width, height);
+                    lastReportedWidth = width;
+                    lastReportedHeight = height;
+                }
+            }
+            // For Fabric, onMeasure() handles sizing automatically
+        }
     }
 
     private float getScaledSize(float size) {
         return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, size, getResources().getDisplayMetrics());
     }
 
+    private static boolean isNewArchitectureEnabled = false;
+    private static boolean architectureChecked = false;
+    
+    private static boolean checkNewArchitecture() {
+        if (!architectureChecked) {
+            try {
+                Class.forName("com.facebook.react.fabric.FabricUIManager");
+                isNewArchitectureEnabled = true;
+            } catch (ClassNotFoundException e) {
+                isNewArchitectureEnabled = false;
+            }
+            architectureChecked = true;
+        }
+        return isNewArchitectureEnabled;
+    }
+
     private void updateSize(int width, int height) {
         ReactContext reactContext = (ReactContext) getContext();
         
-        // Check if New Architecture is enabled by checking for Fabric classes
-        boolean isNewArchitectureEnabled = false;
-        try {
-            // Try to load a Fabric-specific class to detect New Architecture
-            Class.forName("com.facebook.react.fabric.FabricUIManager");
-            isNewArchitectureEnabled = true;
-        } catch (ClassNotFoundException e) {
-            // Fabric classes not found, using old architecture
-            isNewArchitectureEnabled = false;
-        }
-        
-        if (isNewArchitectureEnabled) {
+        if (checkNewArchitecture()) {
             // For New Architecture (Fabric), size updates are handled automatically by the layout system
             // We just need to request layout, and Fabric will handle the rest
             post(new Runnable() {
@@ -144,11 +164,36 @@ class StrokeTextView extends View {
                     });
         }
     }
+    
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        // Safety check: ensure textPaint is initialized before calling ensureLayout
+        if (textPaint == null || strokePaint == null) {
+            super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+            return;
+        }
+        
+        // Ensure layout is calculated
+        if (textLayout == null || layoutDirty) {
+            ensureLayout();
+        }
+        
+        if (textLayout != null) {
+            int width = textLayout.getWidth();
+            int height = textLayout.getHeight();
+            setMeasuredDimension(width, height);
+        } else {
+            // Fallback if layout couldn't be created (e.g., empty text)
+            super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        }
+    }
 
     public void setText(String text) {
         if (!this.text.equals(text)) {
             this.text = text;
             layoutDirty = true;
+            lastReportedWidth = -1;
+            lastReportedHeight = -1;
             invalidate();
         }
     }
@@ -158,6 +203,8 @@ class StrokeTextView extends View {
         if (this.fontSize != scaledFontSize) {
             this.fontSize = scaledFontSize;
             layoutDirty = true;
+            lastReportedWidth = -1;
+            lastReportedHeight = -1;
             invalidate();
         }
     }
@@ -185,6 +232,8 @@ class StrokeTextView extends View {
         if (this.strokeWidth != scaledStrokeWidth) {
             this.strokeWidth = scaledStrokeWidth;
             layoutDirty = true;
+            lastReportedWidth = -1;
+            lastReportedHeight = -1;
             invalidate();
         }
     }
@@ -211,6 +260,8 @@ class StrokeTextView extends View {
         if (this.alignment != newAlignment) {
             this.alignment = newAlignment;
             layoutDirty = true;
+            lastReportedWidth = -1;
+            lastReportedHeight = -1;
             invalidate();
         }
     }
@@ -219,6 +270,8 @@ class StrokeTextView extends View {
         if (this.numberOfLines != numberOfLines) {
             this.numberOfLines = numberOfLines;
             layoutDirty = true;
+            lastReportedWidth = -1;
+            lastReportedHeight = -1;
             invalidate();
         }
     }
@@ -227,6 +280,8 @@ class StrokeTextView extends View {
         if (this.ellipsis != ellipsis) {
             this.ellipsis = ellipsis;
             layoutDirty = true;
+            lastReportedWidth = -1;
+            lastReportedHeight = -1;
             invalidate();
         }
     }
@@ -235,6 +290,8 @@ class StrokeTextView extends View {
         if (!(this.customWidth == width)) {
             this.customWidth = width;
             layoutDirty = true;
+            lastReportedWidth = -1;
+            lastReportedHeight = -1;
             invalidate();
         }
     }

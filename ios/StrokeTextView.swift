@@ -6,11 +6,29 @@ class StrokeTextView: RCTView {
     weak var bridge: RCTBridge?
 
     private var fontCache: [String: UIFont] = [:]
+    private var lastReportedSize: CGSize = .zero
 
+    // Initializer for Old Architecture (requires bridge)
     init(bridge: RCTBridge) {
         label = StrokedTextLabel()
         self.bridge = bridge
         super.init(frame: .zero)
+        setupView()
+    }
+    
+    // Initializer for New Architecture (no bridge needed)
+    override init(frame: CGRect) {
+        label = StrokedTextLabel()
+        self.bridge = nil
+        super.init(frame: frame)
+        setupView()
+    }
+
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    private func setupView() {
         label.textColor = colorStringToUIColor(colorString: color)
         label.outlineColor = colorStringToUIColor(colorString: strokeColor)
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -23,17 +41,36 @@ class StrokeTextView: RCTView {
 
     override func layoutSubviews() {
         super.layoutSubviews()
-        self.bridge?.uiManager.setSize(label.intrinsicContentSize, for: self)
+        updateSize()
     }
-
-    required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+    
+    private func updateSize() {
+        let size = label.intrinsicContentSize
+        
+        // Only update if size actually changed
+        if size.width != lastReportedSize.width || size.height != lastReportedSize.height {
+            lastReportedSize = size
+            
+            #if RCT_NEW_ARCH_ENABLED
+            // For New Architecture (Fabric), size updates are handled automatically
+            // by the layout system. We just need to invalidate intrinsic content size.
+            invalidateIntrinsicContentSize()
+            #else
+            // For Old Architecture, use UIManager to update size
+            self.bridge?.uiManager.setSize(size, for: self)
+            #endif
+        }
+    }
+    
+    override var intrinsicContentSize: CGSize {
+        return label.intrinsicContentSize
     }
 
     @objc var width: NSNumber = 0 {
         didSet {
             if width != oldValue {
                 self.label.customWidth = CGFloat(truncating: width)
+                lastReportedSize = .zero // Reset to force size update
                 label.setNeedsDisplay()
             }
         }
@@ -43,6 +80,7 @@ class StrokeTextView: RCTView {
         didSet {
             if text != oldValue {
                 label.text = text
+                lastReportedSize = .zero // Reset to force size update
                 label.setNeedsDisplay()
             }
         }
@@ -52,6 +90,7 @@ class StrokeTextView: RCTView {
         didSet {
             if fontSize != oldValue {
                 label.font = label.font.withSize(CGFloat(truncating: fontSize))
+                lastReportedSize = .zero // Reset to force size update
                 label.setNeedsDisplay()
             }
         }
@@ -79,6 +118,7 @@ class StrokeTextView: RCTView {
         didSet {
             if strokeWidth != oldValue {
                 label.outlineWidth = CGFloat(truncating: strokeWidth)
+                lastReportedSize = .zero // Reset to force size update
                 label.setNeedsDisplay()
             }
         }
@@ -102,7 +142,7 @@ class StrokeTextView: RCTView {
                         label.font = validFont
                     }
                 }
-
+                lastReportedSize = .zero // Reset to force size update
                 label.setNeedsDisplay()
             }
         }
@@ -137,6 +177,7 @@ class StrokeTextView: RCTView {
         didSet {
             if numberOfLines != oldValue {
                 label.numberOfLines = Int(truncating: numberOfLines)
+                lastReportedSize = .zero // Reset to force size update
                 label.setNeedsDisplay()
             }
         }

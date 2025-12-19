@@ -15,20 +15,25 @@ public class StrokeTextPackage implements ReactPackage {
     return Collections.emptyList();
   }
 
+  private static boolean isNewArchitectureEnabled = false;
+  private static boolean architectureChecked = false;
+  
+  private static boolean checkNewArchitecture() {
+    if (!architectureChecked) {
+      try {
+        Class.forName("com.facebook.react.fabric.FabricUIManager");
+        isNewArchitectureEnabled = true;
+      } catch (ClassNotFoundException e) {
+        isNewArchitectureEnabled = false;
+      }
+      architectureChecked = true;
+    }
+    return isNewArchitectureEnabled;
+  }
+
   @Override
   public List<ViewManager> createViewManagers(ReactApplicationContext reactContext) {
-    // Check if New Architecture is enabled by checking for Fabric classes
-    boolean isNewArchitectureEnabled = false;
-    try {
-      // Try to load a Fabric-specific class to detect New Architecture
-      Class.forName("com.facebook.react.fabric.FabricUIManager");
-      isNewArchitectureEnabled = true;
-    } catch (ClassNotFoundException e) {
-      // Fabric classes not found, using old architecture
-      isNewArchitectureEnabled = false;
-    }
-
-    if (isNewArchitectureEnabled) {
+    if (checkNewArchitecture()) {
       // Return Fabric manager for New Architecture
       return Arrays.<ViewManager>asList(new StrokeTextViewFabricManager());
     } else {
