@@ -1,17 +1,18 @@
 import type { ViewProps } from 'react-native';
 import type { HostComponent } from 'react-native';
+import { Double, Int32 } from 'react-native/Libraries/Types/CodegenTypes';
 import codegenNativeComponent from 'react-native/Libraries/Utilities/codegenNativeComponent';
 
 export interface NativeProps extends ViewProps {
-  width?: number;
+  width?: Double;
   text: string;
-  fontSize?: number;
+  fontSize?: Double;
   color?: string;
   strokeColor?: string;
-  strokeWidth?: number;
+  strokeWidth?: Double;
   fontFamily?: string;
   align?: 'center' | 'left' | 'right';
-  numberOfLines?: number;
+  numberOfLines?: Int32;
   ellipsis?: boolean;
 }
 
