@@ -4,6 +4,13 @@
   "description": "React Native Stroke/Outline Text",
   "main": "build/index.js",
   "types": "build/index.d.ts",
+  "typings": "build/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./build/index.d.ts",
+      "default": "./build/index.js"
+    }
+  },
   "source": "./src/",
   "author": "Charmy Inc. (https://github.com/charmy)",
   "license": "MIT",
