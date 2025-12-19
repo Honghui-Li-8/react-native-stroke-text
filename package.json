@@ -25,6 +25,15 @@
     "text",
     "outline"
   ],
+  "files": [
+    "build/",
+    "src/",
+    "android/",
+    "ios/",
+    "react-native-stroke-text.podspec",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "validate-codegen": "node scripts/validate-codegen.js",
