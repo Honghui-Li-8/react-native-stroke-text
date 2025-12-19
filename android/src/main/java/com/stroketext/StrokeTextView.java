@@ -109,16 +109,40 @@ class StrokeTextView extends View {
 
     private void updateSize(int width, int height) {
         ReactContext reactContext = (ReactContext) getContext();
-        reactContext.runOnNativeModulesQueueThread(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        UIManagerModule uiManager = reactContext.getNativeModule(UIManagerModule.class);
-                        if (uiManager != null) {
-                            uiManager.updateNodeSize(getId(), width, height);
+        
+        // Check if New Architecture is enabled by checking for Fabric classes
+        boolean isNewArchitectureEnabled = false;
+        try {
+            // Try to load a Fabric-specific class to detect New Architecture
+            Class.forName("com.facebook.react.fabric.FabricUIManager");
+            isNewArchitectureEnabled = true;
+        } catch (ClassNotFoundException e) {
+            // Fabric classes not found, using old architecture
+            isNewArchitectureEnabled = false;
+        }
+        
+        if (isNewArchitectureEnabled) {
+            // For New Architecture (Fabric), size updates are handled automatically by the layout system
+            // We just need to request layout, and Fabric will handle the rest
+            post(new Runnable() {
+                @Override
+                public void run() {
+                    requestLayout();
+                }
+            });
+        } else {
+            // For Old Architecture, use UIManagerModule
+            reactContext.runOnNativeModulesQueueThread(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            UIManagerModule uiManager = reactContext.getNativeModule(UIManagerModule.class);
+                            if (uiManager != null) {
+                                uiManager.updateNodeSize(getId(), width, height);
+                            }
                         }
-                    }
-                });
+                    });
+        }
     }
 
     public void setText(String text) {

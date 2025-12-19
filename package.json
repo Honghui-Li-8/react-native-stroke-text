@@ -20,6 +20,13 @@
   "scripts": {
     "build": "tsc"
   },
+  "react-native": {
+    "codegenConfig": {
+      "name": "StrokeTextView",
+      "type": "components",
+      "jsSrcsDir": "./src"
+    }
+  },
   "devDependencies": {
     "@babel/core": "^7.21.3",
     "@babel/runtime": "^7.21.0",
