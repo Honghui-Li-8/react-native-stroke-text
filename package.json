@@ -20,6 +20,10 @@
   "scripts": {
     "build": "tsc"
   },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-native": ">=0.81.0"
+  },
   "react-native": {
     "codegenConfig": {
       "name": "StrokeTextView",
@@ -31,8 +35,8 @@
     "@babel/core": "^7.21.3",
     "@babel/runtime": "^7.21.0",
     "@types/node": "^18.15.3",
-    "@types/react": "^18.0.28",
-    "@types/react-native": "^0.71.3",
+    "@types/react": "^18.2.0",
+    "@types/react-native": "^0.81.0",
     "prettier": "^2.8.5",
     "typescript": "^5.0.2"
   }
