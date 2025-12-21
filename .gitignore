@@ -79,3 +79,4 @@ android/keystores/debug.keystore
 /build
 packages/*/build
 examples/*/build
+examples/basic/builds
