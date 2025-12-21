@@ -17,14 +17,54 @@ npm install @charmy.tech/react-native-stroke-text
 yarn add @charmy.tech/react-native-stroke-text
 ```
 
+## Development
+
+This project is a monorepo managed with npm workspaces. The structure is:
+
+```
+react-native-stroke-text/
+├── packages/
+│   └── stroke-text/          # Main package code
+└── examples/
+    └── example/               # Example app
+```
+
+### Setup
+
+1. Install dependencies from the root:
+```bash
+npm install
+```
+
+2. Build the package:
+```bash
+npm run build
+```
+
+3. Run the example app:
+```bash
+npm run example:start      # Start Expo dev server
+npm run example:android    # Run on Android
+npm run example:ios        # Run on iOS
+```
+
+Or navigate to the example directory and use the scripts directly:
+```bash
+cd examples/example
+npm start
+```
+
 ## Android
 min ```compileSdkVersion``` is required to be ```34```
 ## iOS
-Go to your ios folder and run:
+For the example app, go to the example's ios folder and run:
 
 ```
+cd examples/example/ios
 pod install
 ```
+
+For using the package in your own project, follow the standard React Native linking process and run `pod install` in your project's ios folder.
 
 ## Usage
 

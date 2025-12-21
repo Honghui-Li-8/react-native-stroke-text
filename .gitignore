@@ -42,10 +42,11 @@ android.iml
 
 # Cocoapods
 #
-example/ios/Pods
+examples/example/ios/Pods
+packages/stroke-text/ios/Pods
 
 # Ruby
-example/vendor/
+examples/example/vendor/
 
 # node.js
 #
@@ -75,3 +76,5 @@ android/keystores/debug.keystore
 .turbo/
 
 /build
+packages/*/build
+examples/*/build
