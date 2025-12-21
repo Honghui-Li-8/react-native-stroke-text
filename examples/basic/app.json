@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "Stroke Text Basic",
+    "slug": "react-native-stroke-text-basic",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.stroketext.basic"
+    },
+    "android": {
+      "package": "com.stroketext.basic",
+      "compileSdkVersion": 34,
+      "minSdkVersion": 21,
+      "targetSdkVersion": 34
+    },
+    "plugins": [
+      "expo-dev-client"
+    ]
+  }
+}
+
