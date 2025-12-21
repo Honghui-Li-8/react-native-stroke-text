@@ -9,7 +9,7 @@
     "web": "expo start --web"
   },
   "dependencies": {
-    "@charmy.tech/react-native-stroke-text": "workspace:*",
+    "@charmy.tech/react-native-stroke-text": "file:../../packages/stroke-text",
     "@expo/vector-icons": "^15.0.3",
     "@react-native-community/slider": "5.0.1",
     "@react-navigation/native": "^6.1.9",
