@@ -4,13 +4,7 @@
     "slug": "react-native-stroke-text-example",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -19,15 +13,12 @@
       "bundleIdentifier": "com.stroketext.example"
     },
     "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      },
-      "package": "com.stroketext.example",
-      "compileSdkVersion": 34
+      "package": "com.stroketextexample",
+      "compileSdkVersion": 34,
+      "minSdkVersion": 21,
+      "targetSdkVersion": 34
     },
     "web": {
-      "favicon": "./assets/favicon.png"
     },
     "plugins": [
       "expo-dev-client"
