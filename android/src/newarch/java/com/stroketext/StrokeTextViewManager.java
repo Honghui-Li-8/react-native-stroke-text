@@ -4,6 +4,8 @@ import com.facebook.react.uimanager.SimpleViewManager;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.ViewManagerDelegate;
 import com.facebook.react.uimanager.annotations.ReactProp;
+import com.facebook.react.viewmanagers.StrokeTextViewManagerDelegate;
+import com.facebook.react.viewmanagers.StrokeTextViewManagerInterface;
 
 public class StrokeTextViewManager extends SimpleViewManager<StrokeTextView>
         implements StrokeTextViewManagerInterface<StrokeTextView> {
