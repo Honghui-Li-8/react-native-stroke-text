@@ -58,7 +58,7 @@ android {
   sourceSets {
     main {
       if (isNewArchitectureEnabled()) {
-        java.srcDirs += ["src/newarch/java"]
+        java.srcDirs += ["src/newarch/java", "$buildDir/generated/source/codegen/java"]
       } else {
         java.srcDirs += ["src/oldarch/java"]
       }
