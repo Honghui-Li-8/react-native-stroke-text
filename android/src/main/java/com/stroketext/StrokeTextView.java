@@ -10,10 +10,9 @@ import android.text.TextPaint;
 import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.View;
+import android.view.View.MeasureSpec;
 
-import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.uimanager.ThemedReactContext;
-import com.facebook.react.uimanager.UIManagerModule;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,6 +32,7 @@ class StrokeTextView extends View {
     private StaticLayout textLayout;
     private StaticLayout strokeLayout;
     private boolean layoutDirty = true;
+    private int lastLayoutWidth = -1;
     private float customWidth = 0;
     private final Map<String, Typeface> fontCache = new HashMap<>();
 
@@ -42,43 +42,76 @@ class StrokeTextView extends View {
         strokePaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
     }
 
-    private void ensureLayout() {
-        if (layoutDirty) {
-            Typeface typeface = getFont(fontFamily);
-            textPaint.setTypeface(typeface);
-            textPaint.setTextSize(fontSize);
-            textPaint.setColor(textColor);
-            strokePaint.setStyle(Paint.Style.STROKE);
-            strokePaint.setStrokeJoin(Paint.Join.ROUND);
-            strokePaint.setStrokeCap(Paint.Cap.ROUND);
-            strokePaint.setStrokeWidth(strokeWidth);
-            strokePaint.setColor(strokeColor);
-            strokePaint.setTypeface(typeface);
-            strokePaint.setTextSize(fontSize);
-
-            int width = (int) getCanvasWidth();
-            CharSequence ellipsizedText = ellipsis ? TextUtils.ellipsize(text, textPaint, width, TextUtils.TruncateAt.END) : text;
-            textLayout = new StaticLayout(ellipsizedText, textPaint, width, alignment, 1.0f, 0.0f, false);
-            if (numberOfLines > 0 && numberOfLines < textLayout.getLineCount()) {
-                int lineEnd = textLayout.getLineEnd(numberOfLines - 1);
-                ellipsizedText = ellipsizedText.subSequence(0, lineEnd);
-                textLayout = new StaticLayout(ellipsizedText, textPaint, width, alignment, 1.0f, 0.0f, false);
-            }
-            strokeLayout = new StaticLayout(ellipsizedText, strokePaint, width, alignment, 1.0f, 0.0f, false);
-
-            layoutDirty = false;
+    private void ensureLayout(int layoutWidth) {
+        int safeWidth = Math.max(1, layoutWidth);
+        if (!layoutDirty && safeWidth == lastLayoutWidth) {
+            return;
         }
+
+        lastLayoutWidth = safeWidth;
+        updatePaints();
+
+        CharSequence ellipsizedText = ellipsis
+                ? TextUtils.ellipsize(text, textPaint, safeWidth, TextUtils.TruncateAt.END)
+                : text;
+        textLayout = new StaticLayout(ellipsizedText, textPaint, safeWidth, alignment, 1.0f, 0.0f, false);
+        if (numberOfLines > 0 && numberOfLines < textLayout.getLineCount()) {
+            int lineEnd = textLayout.getLineEnd(numberOfLines - 1);
+            ellipsizedText = ellipsizedText.subSequence(0, lineEnd);
+            textLayout = new StaticLayout(ellipsizedText, textPaint, safeWidth, alignment, 1.0f, 0.0f, false);
+        }
+        strokeLayout = new StaticLayout(ellipsizedText, strokePaint, safeWidth, alignment, 1.0f, 0.0f, false);
+
+        layoutDirty = false;
     }
 
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-        layoutDirty = true;
-        ensureLayout();
+        super.onSizeChanged(w, h, oldw, oldh);
+        if (w != oldw) {
+            layoutDirty = true;
+            lastLayoutWidth = -1;
+        }
     }
 
-    private float getCanvasWidth() {
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        int width = resolveWidth(widthMeasureSpec);
+        ensureLayout(width);
+
+        int desiredHeight = textLayout != null ? textLayout.getHeight() : 0;
+        int heightMode = MeasureSpec.getMode(heightMeasureSpec);
+        int heightSize = MeasureSpec.getSize(heightMeasureSpec);
+        int height;
+        if (heightMode == MeasureSpec.EXACTLY) {
+            height = heightSize;
+        } else if (heightMode == MeasureSpec.AT_MOST) {
+            height = Math.min(desiredHeight, heightSize);
+        } else {
+            height = desiredHeight;
+        }
+
+        setMeasuredDimension(width, height);
+    }
+
+    private int resolveWidth(int widthMeasureSpec) {
+        updatePaints();
+        int mode = MeasureSpec.getMode(widthMeasureSpec);
+        int size = MeasureSpec.getSize(widthMeasureSpec);
+        int desiredWidth = getDesiredWidth();
+
+        if (mode == MeasureSpec.EXACTLY) {
+            return size;
+        }
+        if (mode == MeasureSpec.AT_MOST) {
+            return Math.min(desiredWidth, size);
+        }
+        return desiredWidth;
+    }
+
+    private int getDesiredWidth() {
         if (customWidth > 0) {
-            return getScaledSize(customWidth);
+            return Math.round(getScaledSize(customWidth));
         }
 
         String[] lines = text.split("\n");
@@ -91,41 +124,51 @@ class StrokeTextView extends View {
         }
 
         maxLineWidth += getScaledSize(strokeWidth) / 2;
-        return maxLineWidth;
+        return Math.round(maxLineWidth);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        ensureLayout();
-        strokeLayout.draw(canvas);
-        textLayout.draw(canvas);
-        updateSize(textLayout.getWidth(), textLayout.getHeight());
+        int width = getMeasuredWidth();
+        if (width == 0) {
+            width = getWidth();
+        }
+        ensureLayout(width);
+        if (strokeLayout != null && textLayout != null) {
+            strokeLayout.draw(canvas);
+            textLayout.draw(canvas);
+        }
     }
 
     private float getScaledSize(float size) {
         return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, size, getResources().getDisplayMetrics());
     }
 
-    private void updateSize(int width, int height) {
-        ReactContext reactContext = (ReactContext) getContext();
-        reactContext.runOnNativeModulesQueueThread(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        UIManagerModule uiManager = reactContext.getNativeModule(UIManagerModule.class);
-                        if (uiManager != null) {
-                            uiManager.updateNodeSize(getId(), width, height);
-                        }
-                    }
-                });
+    private void updatePaints() {
+        Typeface typeface = getFont(fontFamily);
+        textPaint.setTypeface(typeface);
+        textPaint.setTextSize(fontSize);
+        textPaint.setColor(textColor);
+        strokePaint.setStyle(Paint.Style.STROKE);
+        strokePaint.setStrokeJoin(Paint.Join.ROUND);
+        strokePaint.setStrokeCap(Paint.Cap.ROUND);
+        strokePaint.setStrokeWidth(strokeWidth);
+        strokePaint.setColor(strokeColor);
+        strokePaint.setTypeface(typeface);
+        strokePaint.setTextSize(fontSize);
+    }
+
+    private void markLayoutDirty() {
+        layoutDirty = true;
+        requestLayout();
+        invalidate();
     }
 
     public void setText(String text) {
         if (!this.text.equals(text)) {
             this.text = text;
-            layoutDirty = true;
-            invalidate();
+            markLayoutDirty();
         }
     }
 
@@ -133,8 +176,7 @@ class StrokeTextView extends View {
         float scaledFontSize = getScaledSize(fontSize);
         if (this.fontSize != scaledFontSize) {
             this.fontSize = scaledFontSize;
-            layoutDirty = true;
-            invalidate();
+            markLayoutDirty();
         }
     }
 
@@ -142,8 +184,7 @@ class StrokeTextView extends View {
         int parsedColor = parseColor(color);
         if (this.textColor != parsedColor) {
             this.textColor = parsedColor;
-            layoutDirty = true;
-            invalidate();
+            markLayoutDirty();
         }
     }
 
@@ -151,8 +192,7 @@ class StrokeTextView extends View {
         int parsedColor = parseColor(color);
         if (this.strokeColor != parsedColor) {
             this.strokeColor = parsedColor;
-            layoutDirty = true;
-            invalidate();
+            markLayoutDirty();
         }
     }
 
@@ -160,16 +200,14 @@ class StrokeTextView extends View {
         float scaledStrokeWidth = getScaledSize(strokeWidth);
         if (this.strokeWidth != scaledStrokeWidth) {
             this.strokeWidth = scaledStrokeWidth;
-            layoutDirty = true;
-            invalidate();
+            markLayoutDirty();
         }
     }
 
     public void setFontFamily(String fontFamily) {
         if (!this.fontFamily.equals(fontFamily)) {
             this.fontFamily = fontFamily;
-            layoutDirty = true;
-            invalidate();
+            markLayoutDirty();
         }
     }
 
@@ -186,32 +224,28 @@ class StrokeTextView extends View {
         }
         if (this.alignment != newAlignment) {
             this.alignment = newAlignment;
-            layoutDirty = true;
-            invalidate();
+            markLayoutDirty();
         }
     }
 
     public void setNumberOfLines(int numberOfLines) {
         if (this.numberOfLines != numberOfLines) {
             this.numberOfLines = numberOfLines;
-            layoutDirty = true;
-            invalidate();
+            markLayoutDirty();
         }
     }
 
     public void setEllipsis(boolean ellipsis) {
         if (this.ellipsis != ellipsis) {
             this.ellipsis = ellipsis;
-            layoutDirty = true;
-            invalidate();
+            markLayoutDirty();
         }
     }
 
     public void setCustomWidth(float width) {
         if (!(this.customWidth == width)) {
             this.customWidth = width;
-            layoutDirty = true;
-            invalidate();
+            markLayoutDirty();
         }
     }
 

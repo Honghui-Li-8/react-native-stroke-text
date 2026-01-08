@@ -1,13 +1,15 @@
 package com.stroketext;
 
-import android.view.View;
-
 import com.facebook.react.uimanager.SimpleViewManager;
 import com.facebook.react.uimanager.ThemedReactContext;
+import com.facebook.react.uimanager.ViewManagerDelegate;
 import com.facebook.react.uimanager.annotations.ReactProp;
 
-public class StrokeTextViewManager extends SimpleViewManager<View> {
+public class StrokeTextViewManager extends SimpleViewManager<StrokeTextView>
+        implements StrokeTextViewManagerInterface<StrokeTextView> {
     public static final String REACT_CLASS = "StrokeTextView";
+    private final ViewManagerDelegate<StrokeTextView> mDelegate =
+            new StrokeTextViewManagerDelegate<>(this);
 
     @Override
     public String getName() {
@@ -15,7 +17,12 @@ public class StrokeTextViewManager extends SimpleViewManager<View> {
     }
 
     @Override
-    public View createViewInstance(ThemedReactContext reactContext) {
+    public ViewManagerDelegate<StrokeTextView> getDelegate() {
+        return mDelegate;
+    }
+
+    @Override
+    public StrokeTextView createViewInstance(ThemedReactContext reactContext) {
         return new StrokeTextView(reactContext);
     }
 

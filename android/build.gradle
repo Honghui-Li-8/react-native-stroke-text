@@ -55,6 +55,16 @@ android {
 
   }
 
+  sourceSets {
+    main {
+      if (isNewArchitectureEnabled()) {
+        java.srcDirs += ["src/newarch/java"]
+      } else {
+        java.srcDirs += ["src/oldarch/java"]
+      }
+    }
+  }
+
   buildTypes {
     release {
       minifyEnabled false
@@ -83,4 +93,3 @@ dependencies {
   //noinspection GradleDynamicVersion
   implementation "com.facebook.react:react-native:+"
 }
-
