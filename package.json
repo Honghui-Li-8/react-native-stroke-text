@@ -3,6 +3,7 @@
   "version": "2.0.0",
   "description": "React Native Stroke/Outline Text",
   "main": "build/index.js",
+  "types": "build/index.d.ts",
   "source": "./src/",
   "codegenConfig": {
     "name": "StrokeTextView",
