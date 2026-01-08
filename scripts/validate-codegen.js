@@ -32,7 +32,8 @@ function main() {
     process.exit(1);
   }
 
-  const codegenConfig = packageJson['react-native']?.codegenConfig;
+  const codegenConfig =
+    packageJson.codegenConfig || packageJson['react-native']?.codegenConfig;
   if (!codegenConfig) {
     console.error('❌ Error: No codegenConfig found in package.json');
     process.exit(1);

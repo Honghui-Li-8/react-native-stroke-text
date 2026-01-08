@@ -8,6 +8,7 @@
   "exports": {
     ".": {
       "types": "./build/index.d.ts",
+      "react-native": "./src/index.tsx",
       "default": "./build/index.js"
     }
   },
@@ -44,12 +45,11 @@
     "react": ">=19.0.0",
     "react-native": ">=0.81.0"
   },
-  "react-native": {
-    "codegenConfig": {
-      "name": "StrokeTextView",
-      "type": "components",
-      "jsSrcsDir": "./src"
-    }
+  "react-native": "src/index.tsx",
+  "codegenConfig": {
+    "name": "StrokeTextView",
+    "type": "components",
+    "jsSrcsDir": "./src"
   },
   "devDependencies": {
     "@babel/core": "^7.21.3",
