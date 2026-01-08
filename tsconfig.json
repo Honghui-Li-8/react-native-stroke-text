@@ -9,8 +9,6 @@
     "incremental": true /* Enable incremental compilation */,
     "isolatedModules": true,
     "strict": true,
-    "moduleResolution": "node",
-    "baseUrl": "./",
     "outDir": "build",
     "noEmitHelpers": true,
     "alwaysStrict": true,

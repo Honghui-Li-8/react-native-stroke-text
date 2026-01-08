@@ -3,6 +3,7 @@ package com.stroketext;
 import com.facebook.react.uimanager.SimpleViewManager;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.annotations.ReactProp;
+import androidx.annotation.Nullable;
 
 public class StrokeTextViewManager extends SimpleViewManager<StrokeTextView> {
     public static final String REACT_CLASS = "StrokeTextView";
@@ -48,8 +49,8 @@ public class StrokeTextViewManager extends SimpleViewManager<StrokeTextView> {
     }
 
     @ReactProp(name = "align")
-    public void setTextAlignment(StrokeTextView view, String align) {
-        view.setTextAlignment(align);
+    public void setAlign(StrokeTextView view, @Nullable String align) {
+        view.setTextAlignment(align == null ? "center" : align);
     }
 
     @ReactProp(name = "numberOfLines")

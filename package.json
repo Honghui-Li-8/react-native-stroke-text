@@ -9,6 +9,7 @@
     "name": "StrokeTextView",
     "type": "components",
     "jsSrcsDir": "src",
+    "includesGeneratedCode": true,
     "android": {
       "javaPackageName": "com.stroketext"
     }
